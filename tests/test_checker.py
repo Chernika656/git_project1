@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from checker import BPMN, MAX_BYTES, check_bytes, check_file, write_html
+from facet.bpmn.checker import BPMN, MAX_BYTES, check_bytes, check_file, write_html
 
 
 def document(body):

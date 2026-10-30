@@ -2,9 +2,9 @@ import json
 from unittest.mock import patch
 import unittest
 import test_agent
-from ai_agent import AgentError
-from agent_analysis import project_context, validate_analysis
-from workspace import new_project
+from facet.ai.agent import AgentError
+from facet.ai.analysis import project_context, validate_analysis
+from facet.projects.workspace import new_project
 
 class AnalysisTests(unittest.TestCase):
     setUp = test_agent.AgentTests.setUp

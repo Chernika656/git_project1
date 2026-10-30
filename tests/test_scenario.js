@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const root = path.join(__dirname, '..', 'web');
+const root = path.join(__dirname, '..', 'frontend', 'js');
 const context = {structuredClone, Map, Set};
 vm.createContext(context);
 const parallel = fs.readFileSync(path.join(root, 'parallel.js'), 'utf8');

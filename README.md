@@ -16,19 +16,55 @@
 
 ## Стек
 
-Python 3.10+, SQLite, HTML/CSS, JavaScript и SVG. Сервер использует стандартную библиотеку Python; установка Python-зависимостей для веб-версии не требуется. Библиотеки для презентаций включены в `web/vendor` вместе с лицензиями.
+Python 3.10+, SQLite, HTML/CSS, JavaScript и SVG. Сервер использует стандартную библиотеку Python; установка Python-зависимостей для веб-версии не требуется. Библиотеки для презентаций включены в `frontend/vendor` вместе с лицензиями.
 
 ## Локальный запуск
 
 Из корня репозитория:
 
 ```sh
-python3 web_app.py --port 8765 --data ./data/workspace.sqlite3
+python3 -m facet --port 8765 --data ./data/workspace.sqlite3
 ```
 
-Откройте http://127.0.0.1:8765. Для остановки нажмите Ctrl+C. При первом запуске создаётся новая база; зарегистрируйте тестовый аккаунт. Без SMTP письма сохраняются локально в `data/mailbox` — подробности в [ACCOUNTS.md](ACCOUNTS.md).
+Откройте http://127.0.0.1:8765. Для остановки нажмите Ctrl+C. При первом запуске создаётся новая база; зарегистрируйте тестовый аккаунт. Без SMTP письма сохраняются локально в `data/mailbox` — подробности в [ACCOUNTS.md](docs/ACCOUNTS.md).
 
-API-ключ для запуска приложения не нужен. Для реальной генерации ИИ потребуется собственный ключ в локальном `.env`; используйте [.env.example](.env.example) и [инструкцию ИИ-помощника](AI-AGENT.md). Внешние сервисы в HTML-прототипах имитируются. Режим шаблона без ИИ не является ответом модели.
+API-ключ для запуска приложения не нужен. Для реальной генерации ИИ потребуется собственный ключ в локальном `.env`; используйте [.env.example](.env.example) и [инструкцию ИИ-помощника](docs/AI-AGENT.md). Внешние сервисы в HTML-прототипах имитируются. Режим шаблона без ИИ не является ответом модели.
+
+Старая команда `python3 web_app.py` продолжает работать. Команда в файле `Проектная среда.command` открывает браузер через `scripts/launch_web.py`.
+
+## Структура
+
+```text
+facet/        сервер: web, projects, bpmn, identity, ai, integrations, desktop
+frontend/     интерфейс: pages, js, css, assets, vendor
+resources/    оформление автономных BPMN-отчётов
+examples/     учебные схемы
+tests/        тесты Python и JavaScript
+scripts/      запуск с открытием браузера
+deploy/       Docker, Compose, Nginx и резервные копии
+docs/         архитектура, решения и инструкции
+```
+
+Назначение модулей и их зависимости описаны в [архитектуре](docs/ARCHITECTURE.md). Три небольших Python-файла в корне сохраняют прежние команды запуска; реализация находится в пакете `facet`.
+
+## Проверки структуры
+
+Проверенная выборка из 81 теста:
+
+```sh
+PYTHONPATH=tests python3 -m unittest \
+  test_web.HttpTests test_web.WorkspaceTests test_agent test_agent_analysis \
+  test_checker test_presentation test_prototype \
+  test_accounts.AccountTests.test_registration_and_email_verification \
+  test_accounts.AccountTests.test_private_spaces_are_isolated \
+  test_accounts.AccountTests.test_telegram_webapp_signature_creates_session \
+  test_web.BpmnWebTests.test_lane_assignment_updates_semantics_and_diagram -q
+node tests/test_scenario.js
+```
+
+Проверены все 25 публичных ресурсов интерфейса, запуск через пакет и прежний файл запуска, в том числе из другой рабочей директории. Вызовы модели в тестах подменены; реальные ключи не нужны.
+
+Тест `node tests/test_presentation_import.js` воспроизводит существовавшую до переноса ошибку сохранения изображения слайда. Docker-сборка и Tkinter в этой среде не проверялись; подробности — в [описании архитектуры](docs/ARCHITECTURE.md).
 
 ## Подготовка к публикации
 
@@ -38,10 +74,12 @@ API-ключ для запуска приложения не нужен. Для 
 
 ## Документация
 
-- [Веб-версия](WEB-MVP.md)
-- [Аккаунты и доступ](ACCOUNTS.md)
-- [ИИ-помощник](AI-AGENT.md)
-- [Пример развёртывания](DEPLOY.md)
-- [Первоначальный BPMN-анализатор](README-LEGACY.md)
+- [Веб-версия](docs/WEB-MVP.md)
+- [Архитектура](docs/ARCHITECTURE.md)
+- [Принятые решения](docs/DECISIONS.md)
+- [Аккаунты и доступ](docs/ACCOUNTS.md)
+- [ИИ-помощник](docs/AI-AGENT.md)
+- [Пример развёртывания](docs/DEPLOY.md)
+- [Первоначальный BPMN-анализатор](docs/README-LEGACY.md)
 
 Документация отдельных этапов сохраняет ограничения соответствующих версий и местами отстаёт от кода. Это MVP: статическая проверка BPMN не заменяет полную проверку стандарта и бизнес-смысла, а ИИ-функции требуют отдельной проверки с выбранным провайдером.

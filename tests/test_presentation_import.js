@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.join(__dirname, '..', 'web', 'app.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '..', 'frontend', 'js', 'app.js'), 'utf8');
 const context = {structuredClone, serial:0};
 vm.createContext(context);
 vm.runInContext('function uid(){return "new-"+(++serial)}\n' +

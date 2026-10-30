@@ -3,8 +3,8 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from checker import check_file
-from diagram import load_diagram
+from facet.bpmn.checker import check_file
+from facet.bpmn.diagram import load_diagram
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
 

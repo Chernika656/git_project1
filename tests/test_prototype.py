@@ -4,8 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from block_templates import Templates
-from workspace import Store, new_project, validate_project
+from facet.projects.templates import Templates
+from facet.projects.workspace import Store, new_project, validate_project
 
 
 class PrototypeTests(unittest.TestCase):

@@ -8,8 +8,9 @@ from pathlib import Path
 from unittest.mock import patch
 from unittest.mock import MagicMock
 
-from ai_agent import Agent, AgentError, validate_prototype
-from workspace import Store, new_project, validate_project
+from facet.ai.agent import Agent, AgentError, validate_prototype
+from facet.paths import ENV_FILE
+from facet.projects.workspace import Store, new_project, validate_project
 
 
 PROTOTYPE = {'title': 'Заявка', 'css': 'h1{color:purple}', 'pages': [
@@ -27,6 +28,16 @@ class AgentTests(unittest.TestCase):
         self.store = Store(self.path/'test.db')
         self.config = self.path/'.env'
         self.agent = Agent(self.store, self.config)
+
+    def test_default_config_is_loaded_from_repository_root(self):
+        # Moving the package must not silently disconnect an existing root .env.
+        with patch('facet.ai.agent.ENV_FILE', self.config):
+            agent = Agent(self.store)
+            self.config.write_text('OPENAI_API_KEY=secret-test\nOPENAI_MODEL=test-model\n')
+            self.assertTrue(agent.status()['configured'])
+            self.assertEqual(agent.status()['model'], 'test-model')
+            self.assertNotIn('secret-test', json.dumps(agent.status()))
+        self.assertEqual(ENV_FILE.parent, Path(__file__).resolve().parents[1])
 
     def test_no_key_does_not_make_request_or_consume_quota(self):
         with patch.object(self.agent, 'request') as request:
@@ -53,7 +64,7 @@ class AgentTests(unittest.TestCase):
         connection=MagicMock()
         connection.getresponse.return_value.status=403
         connection.getresponse.return_value.read.return_value=json.dumps({'error':{'code':'unsupported_country_region_territory'}}).encode()
-        with patch('ai_agent.http.client.HTTPSConnection',return_value=connection):
+        with patch('facet.ai.agent.http.client.HTTPSConnection',return_value=connection):
             with self.assertRaisesRegex(AgentError,'IP-адреса этого сервера') as caught:
                 self.agent.request('/v1/models')
         self.assertTrue(caught.exception.unbilled)
@@ -64,7 +75,7 @@ class AgentTests(unittest.TestCase):
         connection=MagicMock()
         connection.getresponse.return_value.status=429
         connection.getresponse.return_value.read.return_value=b'{}'
-        with patch('ai_agent.http.client.HTTPSConnection',return_value=connection):
+        with patch('facet.ai.agent.http.client.HTTPSConnection',return_value=connection):
             with self.assertRaises(AgentError) as caught:
                 self.agent.request('/v1/responses',{'model':'test'})
         self.assertTrue(caught.exception.unbilled)
