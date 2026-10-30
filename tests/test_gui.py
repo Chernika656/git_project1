@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 class GuiTests(unittest.TestCase):
     def setUp(self):
         import tkinter as tk
-        from app import BpmnApp
+        from facet.desktop.app import BpmnApp
         self.root = tk.Tk()
         self.root.withdraw()
         self.app = BpmnApp(self.root)
@@ -141,8 +141,8 @@ class GuiTests(unittest.TestCase):
         self.app.close_fullscreen()
 
     def test_focus_large_element_reduces_previous_zoom(self):
-        from checker import Report
-        from diagram import Diagram, Shape
+        from facet.bpmn.checker import Report
+        from facet.bpmn.diagram import Diagram, Shape
         self.root.deiconify()
         self.root.update()
         view = self.app.diagram_view
@@ -216,7 +216,7 @@ class GuiTests(unittest.TestCase):
 
     def test_drag_saves_and_undo_restores_exact_file(self):
         from types import SimpleNamespace
-        from diagram import load_diagram
+        from facet.bpmn.diagram import load_diagram
         examples = Path(__file__).resolve().parents[1] / "examples"
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "test.bpmn"
@@ -277,7 +277,7 @@ class GuiTests(unittest.TestCase):
 
     def test_external_save_during_drag_is_not_overwritten(self):
         from copy import deepcopy
-        from editor import move_shape
+        from facet.bpmn.editor import move_shape
         from unittest.mock import patch
         examples = Path(__file__).resolve().parents[1] / "examples"
         with tempfile.TemporaryDirectory() as temp:
@@ -288,7 +288,7 @@ class GuiTests(unittest.TestCase):
             move_shape(moving, "Check_Request", 20, 30)
             external = (examples / "valid.bpmn").read_bytes()
             path.write_bytes(external)
-            with patch("app.messagebox.showerror") as notify:
+            with patch("facet.desktop.app.messagebox.showerror") as notify:
                 self.app.commit_move(moving)
                 notify.assert_called_once()
             self.assertEqual(path.read_bytes(), external)

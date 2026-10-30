@@ -12,10 +12,10 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from unittest.mock import patch
 from urllib.parse import urlencode
-from accounts import Accounts, AccessError, password_hash, password_matches, digest
-from ai_agent import Agent
-from telegram_bot import TelegramBot
-from workspace import Store, Conflict, new_block
+from facet.identity.accounts import Accounts, AccessError, password_hash, password_matches, digest
+from facet.ai.agent import Agent
+from facet.integrations.telegram import TelegramBot
+from facet.projects.workspace import Store, Conflict, new_block
 
 PASSWORD = 'a long test password 2026!'
 

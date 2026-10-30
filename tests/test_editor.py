@@ -6,9 +6,9 @@ import unittest
 from xml.dom import minidom
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from checker import BPMN, check_bytes
-from diagram import DIAGRAM, Diagram, Edge, Shape, load_diagram
-from editor import EditError, move_shape, route, save_document, updated_xml
+from facet.bpmn.checker import BPMN, check_bytes
+from facet.bpmn.diagram import DIAGRAM, Diagram, Edge, Shape, load_diagram
+from facet.bpmn.editor import EditError, move_shape, route, save_document, updated_xml
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
 

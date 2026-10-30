@@ -4,8 +4,8 @@ import io
 import unittest
 import zipfile
 
-from presentation import extract_pptx
-from workspace import new_block, new_project, validate_project
+from facet.projects.presentation import extract_pptx
+from facet.projects.workspace import new_block, new_project, validate_project
 
 
 class PresentationTests(unittest.TestCase):

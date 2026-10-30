@@ -9,12 +9,14 @@ from pathlib import Path
 from http.server import ThreadingHTTPServer
 from xml.dom import minidom
 
-from workspace import Store, Conflict, new_project, new_block, validate_project, BASE
-from web_app import make_handler
-from bpmn_web import edit, analyze
-from accounts import Accounts
+from facet.projects.workspace import Store, Conflict, new_project, new_block, validate_project
+from facet.paths import PROJECT_ROOT as BASE, FRONTEND_DIR
+from facet.web.assets import STATIC_FILES
+from facet.web.server import make_handler
+from facet.bpmn.service import edit, analyze
+from facet.identity.accounts import Accounts
 from test_accounts import TestMail, PASSWORD
-from diagram import load_diagram
+from facet.bpmn.diagram import load_diagram
 
 
 class WorkspaceTests(unittest.TestCase):
@@ -545,16 +547,20 @@ class HttpTests(unittest.TestCase):
         h.update({'Cookie':self.cookie,'X-CSRF-Token':self.csrf});h.update(headers or {});conn.request(method,path,body,h);r=conn.getresponse();result=r.read();status=r.status;conn.close()
         return status,result
     def test_assets_and_projects_load(self):
-        for path in ('/','/style.css','/app.js','/account.js','/account.css','/api/projects?space='+self.space):
-            status,data=self.req(path);self.assertEqual(status,200);self.assertTrue(data)
+        for url, resource in STATIC_FILES.items():
+            with self.subTest(url=url):
+                status, data = self.req(url)
+                self.assertEqual(status, 200)
+                self.assertEqual(data, (FRONTEND_DIR / resource).read_bytes())
+        self.assertEqual(self.req('/api/projects?space='+self.space)[0], 200)
     def test_agent_permissions_and_isolated_frame(self):
         from unittest.mock import patch
         self.assertEqual(self.req('/api/agent/status',headers={'Cookie':''})[0],401)
-        with patch('ai_agent.Agent.generate') as generate:
+        with patch('facet.ai.agent.Agent.generate') as generate:
             self.assertEqual(self.req('/api/agent/generate','POST',{'project_id':'missing','block_id':'missing','prompt':'test'})[0],403)
             self.assertEqual(self.req('/api/agent/generate','POST',{'project_id':self.project['id']},headers={'X-CSRF-Token':''})[0],403)
             generate.assert_not_called()
-        with patch('ai_agent.Agent.analyze', return_value={'analysis': {'summary': 'ok'}}) as analyze_agent:
+        with patch('facet.ai.agent.Agent.analyze', return_value={'analysis': {'summary': 'ok'}}) as analyze_agent:
             self.assertEqual(self.req('/api/agent/analyze','POST',{'project_id':'missing','scope':'project'})[0],404)
             self.assertEqual(self.req('/api/agent/analyze','POST',{'project_id':self.project['id']},headers={'X-CSRF-Token':''})[0],403)
             analyze_agent.assert_not_called()
@@ -569,13 +575,13 @@ class HttpTests(unittest.TestCase):
         from unittest.mock import patch
         user=self.accounts.session(self.cookie.split('=',1)[1])['id']
         before=self.accounts.agent_quota(user)['used_today']
-        with patch('ai_agent.Agent.chat',return_value={'model':'Facet local','message':'Готово'}):
+        with patch('facet.ai.agent.Agent.chat',return_value={'model':'Facet local','message':'Готово'}):
             status,_=self.req('/api/agent/chat','POST',{'project_id':self.project['id'],'prompt':'Выровняй BPMN'})
         self.assertEqual(status,200)
         self.assertEqual(self.accounts.agent_quota(user)['used_today'],before)
     def test_slide_agent_endpoint_requires_project_edit_access(self):
         from unittest.mock import patch
-        with patch('ai_agent.Agent.suggest_slides',return_value={'matches':[]}) as suggest:
+        with patch('facet.ai.agent.Agent.suggest_slides',return_value={'matches':[]}) as suggest:
             status,_=self.req('/api/presentation/suggest','POST',{'project_id':'missing','slides':[]})
             self.assertEqual(status,404);suggest.assert_not_called()
             status,_=self.req('/api/presentation/suggest','POST',{'project_id':self.project['id'],'slides':[{'number':1,'title':'Слайд','lines':[]}]})
