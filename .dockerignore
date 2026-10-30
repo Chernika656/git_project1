@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.production.example
+.git
+.idea
+.venv
+__pycache__
+*.pyc
+*.log
+*.bpmn.bak
+data
+tests
+report.html

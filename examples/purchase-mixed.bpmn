@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Purchase" targetNamespace="urn:bpmn-check:purchase">
+  <bpmn:process id="Process_Purchase" name="Согласование и оплата покупки" isExecutable="false">
+    <bpmn:documentation>Учебный процесс с намеренными ошибками; не использовать для исполнения.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Roles">
+      <bpmn:lane id="Lane_initiator" name="Инициатор">
+        <bpmn:flowNodeRef>Start_Request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Clarify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Documents</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NoFunds</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NoFunds</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_manager" name="Руководитель">
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Approval</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Fork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Funds</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Reject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Rejected</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_accountant" name="Бухгалтер">
+        <bpmn:flowNodeRef>Task_Budget</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Pay</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Archive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Audit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Paid</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Request" name="Нужна покупка">
+      <bpmn:outgoing>Flow_Start</bpmn:outgoing>
+      <bpmn:incoming>Flow_BadRestart</bpmn:incoming>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Request" name="Подготовить заявку">
+      <bpmn:incoming>Flow_Start</bpmn:incoming>
+      <bpmn:outgoing>Flow_Submit</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Clarify" name="Уточнить обоснование">
+      <bpmn:incoming>Flow_Clarify</bpmn:incoming>
+      <bpmn:outgoing>Flow_ClarifyLoop</bpmn:outgoing>
+      <bpmn:incoming>Flow_ClarifyLoop</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Documents" name="Собрать документы">
+      <bpmn:incoming>Flow_Documents</bpmn:incoming>
+      <bpmn:outgoing>Flow_DocumentsReady</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_NoFunds" name="Сообщить о нехватке средств">
+      <bpmn:incoming>Flow_NoFunds</bpmn:incoming>
+      <bpmn:outgoing>Flow_NoFundsEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_NoFunds" name="Покупка отложена">
+      <bpmn:incoming>Flow_NoFundsEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_Review" name="Рассмотреть заявку">
+      <bpmn:incoming>Flow_Submit</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reviewed</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_Approval" name="Решение руководителя" default="Flow_Rejected">
+      <bpmn:incoming>Flow_Reviewed</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Rejected</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Clarify</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="Gateway_Fork" name="Подготовка">
+      <bpmn:incoming>Flow_Approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_Documents</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Budget</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="Gateway_Join" name="Всё готово">
+      <bpmn:incoming>Flow_DocumentsReady</bpmn:incoming>
+      <bpmn:incoming>Flow_BudgetReady</bpmn:incoming>
+      <bpmn:outgoing>Flow_Prepared</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="Gateway_Funds" name="Средств достаточно?" default="Flow_Submit">
+      <bpmn:incoming>Flow_Prepared</bpmn:incoming>
+      <bpmn:outgoing>Flow_HasFunds</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NoFunds</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Reject" name="Оформить отказ">
+      <bpmn:incoming>Flow_Rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_RejectEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_Rejected" name="Заявка отклонена">
+      <bpmn:incoming>Flow_RejectEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Budget" name="Рассчитать доступный бюджет">
+      <bpmn:incoming>Flow_Budget</bpmn:incoming>
+      <bpmn:outgoing>Flow_BudgetReady</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Pay" name="Оплатить счёт">
+      <bpmn:incoming>Flow_HasFunds</bpmn:incoming>
+      <bpmn:outgoing>Flow_Payment</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_Archive">
+      <bpmn:incoming>Flow_Payment</bpmn:incoming>
+      <bpmn:outgoing>Flow_ArchiveEnd</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_Audit" name="Сверить реквизиты"/>
+    <bpmn:endEvent id="End_Paid" name="Покупка оплачена">
+      <bpmn:incoming>Flow_ArchiveEnd</bpmn:incoming>
+      <bpmn:outgoing>Flow_BadRestart</bpmn:outgoing>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="Start_Request" targetRef="Task_Request"/>
+    <bpmn:sequenceFlow id="Flow_Submit" sourceRef="Task_Request" targetRef="Task_Review"/>
+    <bpmn:sequenceFlow id="Flow_Reviewed" sourceRef="Task_Review" targetRef="Gateway_Approval"/>
+    <bpmn:sequenceFlow id="Flow_Approved" sourceRef="Gateway_Approval" targetRef="Gateway_Fork" name="Одобрено"/>
+    <bpmn:sequenceFlow id="Flow_Rejected" sourceRef="Gateway_Approval" targetRef="Task_Reject" name="Отказ"/>
+    <bpmn:sequenceFlow id="Flow_RejectEnd" sourceRef="Task_Reject" targetRef="End_Rejected"/>
+    <bpmn:sequenceFlow id="Flow_Clarify" sourceRef="Gateway_Approval" targetRef="Task_Clarify" name="На доработку">
+      <bpmn:conditionExpression>decision = "clarify"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Documents" sourceRef="Gateway_Fork" targetRef="Task_Documents"/>
+    <bpmn:sequenceFlow id="Flow_Budget" sourceRef="Gateway_Fork" targetRef="Task_Budget"/>
+    <bpmn:sequenceFlow id="Flow_DocumentsReady" sourceRef="Task_Documents" targetRef="Gateway_Join"/>
+    <bpmn:sequenceFlow id="Flow_BudgetReady" sourceRef="Task_Budget" targetRef="Gateway_Join"/>
+    <bpmn:sequenceFlow id="Flow_Prepared" sourceRef="Gateway_Join" targetRef="Gateway_Funds"/>
+    <bpmn:sequenceFlow id="Flow_HasFunds" sourceRef="Gateway_Funds" targetRef="Task_Pay" name="Да">
+      <bpmn:conditionExpression>available &gt;= amount</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NoFunds" sourceRef="Gateway_Funds" targetRef="Task_NoFunds" name="Нет">
+      <bpmn:conditionExpression>available &lt;= amount</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NoFundsEnd" sourceRef="Task_NoFunds" targetRef="End_NoFunds"/>
+    <bpmn:sequenceFlow id="Flow_Payment" sourceRef="Task_Pay" targetRef="Task_Archive"/>
+    <bpmn:sequenceFlow id="Flow_ClarifyLoop" sourceRef="Task_Clarify" targetRef="Task_Clarify" name="Повторить"/>
+    <bpmn:sequenceFlow id="Flow_ArchiveEnd" sourceRef="Task_Archive" targetRef="End_Paid"/>
+    <bpmn:sequenceFlow id="Flow_BadRestart" sourceRef="End_Paid" targetRef="Start_Request" name="Ошибочный возврат в начало"/>
+  </bpmn:process>
+  <bpmn:collaboration id="Collaboration_Purchase">
+    <bpmn:participant id="Pool_Company" name="Компания · закупка" processRef="Process_Purchase"/>
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="Diagram_Purchase">
+    <bpmndi:BPMNPlane id="Plane_Purchase" bpmnElement="Collaboration_Purchase">
+      <bpmndi:BPMNShape id="Pool_Company_di" bpmnElement="Pool_Company" isHorizontal="true">
+        <dc:Bounds x="40" y="80" width="2340" height="840"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_initiator_di" bpmnElement="Lane_initiator" isHorizontal="true">
+        <dc:Bounds x="70" y="80" width="2310" height="240"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_manager_di" bpmnElement="Lane_manager" isHorizontal="true">
+        <dc:Bounds x="70" y="320" width="2310" height="320"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_accountant_di" bpmnElement="Lane_accountant" isHorizontal="true">
+        <dc:Bounds x="69" y="641.226" width="2310" height="280"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Request_di" bpmnElement="Start_Request">
+        <dc:Bounds x="150" y="192" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="93" y="236" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Request_di" bpmnElement="Task_Request">
+        <dc:Bounds x="250" y="170" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Clarify_di" bpmnElement="Task_Clarify">
+        <dc:Bounds x="526.818" y="212" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Documents_di" bpmnElement="Task_Documents">
+        <dc:Bounds x="980" y="170" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NoFunds_di" bpmnElement="Task_NoFunds">
+        <dc:Bounds x="1550" y="170" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_NoFunds_di" bpmnElement="End_NoFunds">
+        <dc:Bounds x="1810" y="192" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1753" y="236" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+        <dc:Bounds x="450" y="420" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Approval_di" bpmnElement="Gateway_Approval">
+        <dc:Bounds x="700" y="435" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="650" y="493" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Fork_di" bpmnElement="Gateway_Fork">
+        <dc:Bounds x="900" y="435" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="850" y="493" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Join_di" bpmnElement="Gateway_Join">
+        <dc:Bounds x="1240" y="435" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1190" y="493" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Funds_di" bpmnElement="Gateway_Funds">
+        <dc:Bounds x="1380" y="435" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1330" y="493" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Reject_di" bpmnElement="Task_Reject">
+        <dc:Bounds x="820" y="545" width="150" height="65"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected">
+        <dc:Bounds x="1070" y="560" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1013" y="604" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Budget_di" bpmnElement="Task_Budget">
+        <dc:Bounds x="979" y="751.226" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Pay_di" bpmnElement="Task_Pay">
+        <dc:Bounds x="1549" y="751.226" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Archive_di" bpmnElement="Task_Archive">
+        <dc:Bounds x="1779" y="751.226" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Audit_di" bpmnElement="Task_Audit">
+        <dc:Bounds x="1998.091" y="765.771" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Paid_di" bpmnElement="End_Paid">
+        <dc:Bounds x="2259" y="773.226" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2202" y="817.226" width="150" height="34"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_di" bpmnElement="Flow_Start"><di:waypoint x="186" y="210"/><di:waypoint x="250" y="210"/>
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Submit_di" bpmnElement="Flow_Submit"><di:waypoint x="400" y="210"/><di:waypoint x="425" y="210"/><di:waypoint x="425" y="460"/><di:waypoint x="450" y="460"/>
+        
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reviewed_di" bpmnElement="Flow_Reviewed"><di:waypoint x="600" y="460"/><di:waypoint x="700" y="460"/>
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Approved_di" bpmnElement="Flow_Approved"><di:waypoint x="750" y="460"/><di:waypoint x="900" y="460"/>
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Rejected_di" bpmnElement="Flow_Rejected"><di:waypoint x="725" y="485"/><di:waypoint x="725" y="578"/><di:waypoint x="820" y="578"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RejectEnd_di" bpmnElement="Flow_RejectEnd"><di:waypoint x="970" y="578"/><di:waypoint x="1070" y="578"/>
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Clarify_di" bpmnElement="Flow_Clarify"><di:waypoint x="725" y="435"/><di:waypoint x="725" y="363.5"/><di:waypoint x="601.818" y="363.5"/><di:waypoint x="601.818" y="292"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Documents_di" bpmnElement="Flow_Documents"><di:waypoint x="925" y="435"/><di:waypoint x="925" y="210"/><di:waypoint x="980" y="210"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Budget_di" bpmnElement="Flow_Budget"><di:waypoint x="925" y="485"/><di:waypoint x="925" y="618.113"/><di:waypoint x="1059" y="618.113"/><di:waypoint x="1059" y="751.226"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DocumentsReady_di" bpmnElement="Flow_DocumentsReady"><di:waypoint x="1130" y="210"/><di:waypoint x="1265" y="210"/><di:waypoint x="1265" y="435"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BudgetReady_di" bpmnElement="Flow_BudgetReady"><di:waypoint x="1059" y="751.226"/><di:waypoint x="1059" y="618.113"/><di:waypoint x="1265" y="618.113"/><di:waypoint x="1265" y="485"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Prepared_di" bpmnElement="Flow_Prepared"><di:waypoint x="1290" y="460"/><di:waypoint x="1380" y="460"/>
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_HasFunds_di" bpmnElement="Flow_HasFunds"><di:waypoint x="1405" y="485"/><di:waypoint x="1405" y="618.113"/><di:waypoint x="1624" y="618.113"/><di:waypoint x="1624" y="751.226"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NoFunds_di" bpmnElement="Flow_NoFunds"><di:waypoint x="1405" y="435"/><di:waypoint x="1405" y="210"/><di:waypoint x="1550" y="210"/>
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NoFundsEnd_di" bpmnElement="Flow_NoFundsEnd"><di:waypoint x="1710" y="210"/><di:waypoint x="1810" y="210"/>
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Payment_di" bpmnElement="Flow_Payment"><di:waypoint x="1699" y="791.226"/><di:waypoint x="1779" y="791.226"/>
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ClarifyLoop_di" bpmnElement="Flow_ClarifyLoop"><di:waypoint x="601.818" y="212"/><di:waypoint x="601.818" y="167"/><di:waypoint x="481.818" y="167"/><di:waypoint x="481.818" y="252"/><di:waypoint x="526.818" y="252"/>
+        
+        
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ArchiveEnd_di" bpmnElement="Flow_ArchiveEnd"><di:waypoint x="1859" y="751.226"/><di:waypoint x="1859" y="691.226"/><di:waypoint x="2277" y="691.226"/><di:waypoint x="2277" y="773.226"/>
+        
+        
+        
+        
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BadRestart_di" bpmnElement="Flow_BadRestart"><di:waypoint x="2259" y="791.226"/><di:waypoint x="1222.5" y="791.226"/><di:waypoint x="1222.5" y="210"/><di:waypoint x="186" y="210"/>
+        
+        
+        
+        
+        
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

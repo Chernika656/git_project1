@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_Simple" targetNamespace="urn:bpmn-check:simple">
+  <bpmn:process id="Process_Simple" name="Проверка заявки" isExecutable="false">
+    <bpmn:startEvent id="Start" name="Начало">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Check_Request" name="Проверить заявку">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End" name="Конец">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start" targetRef="Check_Request"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Check_Request" targetRef="End"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Simple">
+    <bpmndi:BPMNPlane id="Plane_Simple" bpmnElement="Process_Simple">
+      <bpmndi:BPMNShape id="Start_di" bpmnElement="Start">
+        <dc:Bounds x="100" y="122" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="83" y="165" width="70" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Check_Request_di" bpmnElement="Check_Request">
+        <dc:Bounds x="220" y="100" width="140" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_di" bpmnElement="End">
+        <dc:Bounds x="444" y="122" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="427" y="165" width="70" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="136" y="140"/><di:waypoint x="220" y="140"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="360" y="140"/><di:waypoint x="444" y="140"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

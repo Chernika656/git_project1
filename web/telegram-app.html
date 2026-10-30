@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#10192b">
+  <title>Facet · Telegram</title>
+  <link rel="icon" href="/logo.svg">
+  <link rel="stylesheet" href="/telegram-app.css?v=20260924-1">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="/telegram-app.js?v=20260924-1" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="app-header">
+    <div class="brand"><img src="/logo.svg" alt="" width="34" height="34"><span><small>РАБОЧЕЕ ПРОСТРАНСТВО</small><strong>Facet</strong></span></div>
+    <button id="open-full" class="icon-button" aria-label="Открыть полную версию">↗</button>
+  </header>
+  <main>
+    <section class="page active" data-page="home"><div id="home"></div></section>
+    <section class="page" data-page="tasks">
+      <div class="page-title"><div><small>РАБОЧИЙ РИТМ</small><h1>Мои задачи</h1></div><span id="task-count" class="counter">0</span></div>
+      <form id="task-form" class="glass composer">
+        <input name="title" maxlength="240" placeholder="Новая задача" required>
+        <label>Исполнитель<select name="assignee_id" id="task-assignee"></select></label>
+        <label>Срок<input type="datetime-local" name="due"></label>
+        <button type="submit">Добавить задачу</button>
+      </form>
+      <div class="mini-task-filters"><button type="button" data-mini-task-filter="active" class="active">Активные</button><button type="button" data-mini-task-filter="done">Завершённые</button></div>
+      <div id="tasks" class="stack"></div>
+      <button type="button" id="mini-task-more" class="mini-task-more" hidden>Показать ещё</button>
+    </section>
+    <section class="page" data-page="projects">
+      <div class="page-title"><div><small>ОБЩАЯ КАРТИНА</small><h1>Проекты</h1></div></div>
+      <div id="projects" class="stack"></div>
+    </section>
+    <section class="page" data-page="agent">
+      <div class="page-title"><div><small>FACET AI</small><h1>Аналитик проекта</h1></div><span class="ai-dot">✦</span></div>
+      <div class="glass agent-card">
+        <label>Проект<select id="agent-project"></select></label>
+        <div class="quick-prompts">
+          <button type="button" data-prompt="Дай краткую управленческую сводку проекта: готовность, главные риски и ближайшие решения.">Сводка</button>
+          <button type="button" data-prompt="Найди основные логические и процессные риски. Приоритизируй их по влиянию.">Риски</button>
+          <button type="button" data-prompt="Предложи пять следующих практических шагов по проекту с объяснением приоритета.">Следующие шаги</button>
+        </div>
+        <label>Вопрос<textarea id="agent-prompt" maxlength="4000" placeholder="Что проверить или подготовить?"></textarea></label>
+        <button id="run-agent" class="primary">Проанализировать</button>
+        <p class="cost-note">Агент запускается только по кнопке и расходует API-токены.</p>
+      </div>
+      <div id="agent-result" class="stack"></div>
+    </section>
+  </main>
+  <nav class="bottom-nav" aria-label="Разделы">
+    <button data-nav="home" class="active"><span>⌂</span><small>Главная</small></button>
+    <button data-nav="tasks"><span>✓</span><small>Задачи</small></button>
+    <button data-nav="projects"><span>▦</span><small>Проекты</small></button>
+    <button data-nav="agent"><span>✦</span><small>Агент</small></button>
+  </nav>
+  <div id="loading" class="loading"><div class="loader-ring"></div><strong>Открываем Facet…</strong></div>
+  <div id="toast" class="toast" hidden></div>
+</body>
+</html>
