@@ -1,0 +1,29 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!.env.production.example
+.deploy/
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+# User data and runtime files
+data/
+*.sqlite*
+*.db
+*.db-*
+*.eml
+*.log
+*.bpmn.bak
+report.html
+# Local tools and caches
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
